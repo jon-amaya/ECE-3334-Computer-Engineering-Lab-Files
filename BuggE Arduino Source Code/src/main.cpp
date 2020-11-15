@@ -1,88 +1,104 @@
 #include <Arduino.h>
-
 #include <VNH3SP30.h>
+#include <Wire.h>
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+#include <NewPing.h>
+#include <Adafruit_LSM303DLH_Mag.h>
+#include <Adafruit_Sensor.h>
 
-VNH3SP30 MotorFR;    // define control object for 1 motor
-VNH3SP30 MotorFL;
-VNH3SP30 MotorBR;
-VNH3SP30 MotorBL;
 
-// motor pins
-#define MFR_PWM 6    // pwm pin motor
-#define MFR_INA 30   // control pin INA
-#define MFR_INB 31    // control pin INB
+//ultrasonic modules and distance to trigger stop
+#define SONAR_NUM 3      
+#define MAX_DISTANCE 12 
 
-#define MFL_PWM 4
-#define MFL_INA 26
-#define MFL_INB 27
+//VNH2SP30 motor driver pin definitions
+VNH3SP30 motorFrontRight;
+VNH3SP30 motorFrontLeft;
+VNH3SP30 motorBackRight;
+VNH3SP30 motorBackLeft;
 
-#define MBR_PWM 8
-#define MBR_INA 34
-#define MBR_INB 35
+const int motorFrontRightPWM = 6;
+const int motorFrontRightEnableA = 30;
+const int motorFrontRightEnableB = 31;
 
-#define MBL_PWM 2
-#define MBL_INA 22
-#define MBL_INB 23
+const int motorFrontLeftPWM = 4;
+const int motorFrontLeftEnableA = 26;
+const int motorFrontLeftEnableB = 27;
 
-void forward() {
-  MotorFR.setSpeed(-400);
-  MotorFL.setSpeed(-400);
-  MotorBR.setSpeed(-400);
-  MotorBL.setSpeed(-400);
+const int motorBackRightPWM = 8;
+const int motorBackRightEnableA = 34;
+const int mototBackRightEnableB = 35;
+
+const int motorBackLeftPWM = 2;
+const int motorBackLeftEnableA = 22;
+const int motorBackLeftEnableB = 23;
+
+
+const int forwardSpeed =400;
+const int reverseSpeed =-400;
+const int turnSpeed = 300;
+
+
+
+void motorForward()
+{
+  motorFrontRight.setSpeed(-400);
+  motorFrontLeft.setSpeed(-400);
+  motorBackRight.setSpeed(-400);
+  motorBackLeft.setSpeed(-400);
 }
 
-void backward() {
-  MotorFR.setSpeed(150);
-  MotorBR.setSpeed(150);
-  MotorFL.setSpeed(150);
-  MotorBL.setSpeed(150);
+void motorBackward()
+{
+  motorFrontRight.setSpeed(150);
+  motorBackRight.setSpeed(150);
+  motorFrontLeft.setSpeed(150);
+  motorBackLeft.setSpeed(150);
 }
 
-void stopping() {
-  MotorFR.setSpeed(0);
-  MotorFL.setSpeed(0);
-  MotorBR.setSpeed(0);
-  MotorBL.setSpeed(0);
+void motorStop()
+{
+  motorFrontRight.setSpeed(0);
+  motorFrontLeft.setSpeed(0);
+  motorBackRight.setSpeed(0);
+  motorBackLeft.setSpeed(0);
 }
 
-void left() {
-  MotorFR.setSpeed(-400);
-  MotorBR.setSpeed(-400);
-  MotorFL.setSpeed(400);
-  MotorBL.setSpeed(400);
+void motorleft()
+{
+  motorFrontRight.setSpeed(-400);
+  motorBackRight.setSpeed(-400);
+  motorFrontLeft.setSpeed(400);
+  motorBackLeft.setSpeed(400);
 }
 
-void right() {
-  MotorFR.setSpeed(400);
-  MotorBR.setSpeed(400);
-  MotorFL.setSpeed(-400);
-  MotorBL.setSpeed(-400);
+void motorright()
+{
+  motorFrontRight.setSpeed(400);
+  motorBackRight.setSpeed(400);
+  motorFrontLeft.setSpeed(-400);
+  motorBackLeft.setSpeed(-400);
 }
 
-void steerRight() {
-  MotorFR.setSpeed(200);
-  MotorBR.setSpeed(200);
-  MotorFL.setSpeed(-400);
-  MotorBL.setSpeed(-400);
+void steerRight()
+{
+  motorFrontRight.setSpeed(200);
+  motorBackRight.setSpeed(200);
+  motorFrontLeft.setSpeed(-400);
+  motorBackLeft.setSpeed(-400);
 }
 
-void setup() {
-  MotorFR.begin(MFR_PWM, MFR_INA, MFR_INB);    // Motor 1 object connected through specified pins 
-  MotorFL.begin(MFL_PWM, MFL_INA, MFL_INB);
-  MotorBR.begin(MBR_PWM, MBR_INA, MBR_INB);
-  MotorBL.begin(MBL_PWM, MBL_INA, MBL_INB);
+void setup()
+{
+  motorFrontRight.begin(motorFrontRightPWM, motorFrontRightEnableA, motorFrontRightEnableB); // Motor 1 object connected through specified pins
+  motorFrontLeft.begin(motorFrontLeftPWM, motorFrontLeftEnableA, motorFrontLeftEnableB);
+  motorBackRight.begin(motorBackRightPWM, motorBackRightEnableA, mototBackRightEnableB);
+  motorBackLeft.begin(motorBackLeftPWM, motorBackLeftEnableA, motorBackLeftEnableB);
   Serial.begin(115200);
 }
 
-void loop() {
-  forward();
-  delay(8000);
-  stopping();
-  delay(250);
-  //right();
-  steerRight();
-  delay(150);
-  stopping();
-  delay(250);
+void loop()
+{
 
 }
