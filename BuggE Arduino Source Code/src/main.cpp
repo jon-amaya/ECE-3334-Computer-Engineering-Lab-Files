@@ -57,7 +57,9 @@ int increment = 0; //???
 
 
 //compass axis
-Adafruit_LSM303DLH_Mag_Unified mag = Adafruit_LSM303DLH_Mag_Unified(12345);
+Adafruit_LSM303DLH_Mag_Unified mag = Adafruit_LSM303DLH_Mag_Unified(12345).;
+
+
 int *compassX = 0;
 int *compassY = 0 ;
 int *compassZ = 0;
@@ -99,6 +101,7 @@ void updateCompass(){
   
   sensors_event_t event;
   mag.getEvent(&event);
+  
   
   // Calculate the angle of the vector y,x
   float heading = (atan2(event.magnetic.y, event.magnetic.x));
@@ -197,5 +200,8 @@ void setup()
 
 void loop()
 {
+updateCompass();
+updateGPS();
 
+distanceToDestination = TinyGPSPlus::distanceBetween(gps.location.lat(),gps.location.lng())
 }
