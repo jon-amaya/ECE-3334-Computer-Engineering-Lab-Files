@@ -7,21 +7,16 @@
 #include <Adafruit_LSM303DLH_Mag.h>
 #include <Adafruit_Sensor.h>
 #include <LSM303.h>
+#define CUSTOM_SETTINGS
+#define INCLUDE_GAMEPAD_MODULE
+#include <Dabble.h>
+#define TINY_GSM_MODEM_SIM800
+
 #include <TinyGsmClient.h>
 #include <ThingerTinyGSM.h>
 //ultrasonic modules and distance to trigger stop
 #define SONAR_NUM 3      
 #define MAX_DISTANCE 12 
-#define TINY_GSM_MODEM_SIM800
-
-
-//SIM800L SETUP
-
-
-
-
-
-
 
 
 //ultrasonic sensor sweeping 
@@ -30,7 +25,8 @@ unsigned long currentPingMillis=0;
 unsigned long previousPingMillis =0;
 const long pingIntervaL = 200;
 
-
+const char *cardinal;
+double coursetoKey;
 //VNH2SP30 motor driver pin definitions
 VNH3SP30 motorFrontRight;
 VNH3SP30 motorFrontLeft;
@@ -54,23 +50,35 @@ const int motorBackLeftEnableA = 22;
 const int motorBackLeftEnableB = 23;
 
 
-const int positiveSpeed =400;
-const int negativeSpeed =-400;
+const int positiveSpeed =150
+
+;
+const int negativeSpeed =-150
+
+;
 
 
 TinyGPSPlus gps;
 unsigned long distanceToDestination;
-long double destinationLatitude;
-long double destinationLongitude;
+long double destinationLatitude = 33.584168;
+long double destinationLongitude = -101.874182;
+double currentLatitude;
+double currentLongitude;
 unsigned int satelliteCount = 0;
 unsigned long lastUpdateTime = 0;
 
+
+
+
 int increment = 0; //???
 
+#define TINY_GSM_MODEM_SIM800
 
-//compass axis
+#include <TinyGsmClient.h>
+#include <ThingerTinyGSM.h>
 //Adafruit_LSM303DLH_Mag_Unified mag = Adafruit_LSM303DLH_Mag_Unified(12345).;
 
+//ThingerIO Credentials
 #define USERNAME "ttuRover"
 #define DEVICE_ID "Arduino"
 #define DEVICE_CREDENTIAL "raider"
@@ -85,21 +93,17 @@ int increment = 0; //???
 
 ThingerTinyGSM thing(USERNAME, DEVICE_ID, DEVICE_CREDENTIAL, Serial2);
 
-
-
-
-
 LSM303 compass;
 int *compassX = 0;
 int *compassY = 0 ;
 int *compassZ = 0;
 const int compassOffset = 10;
-float *compassHeading;
+float compassHeading;
 int *compassHeadingOne;
 int *compassHeadingTwo;
 int *roverCycle;
 
-
+float currentCompass;
 
 NewPing sonar[SONAR_NUM] = {   // Sensor object array.
   NewPing(1, 2, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping. 
@@ -110,7 +114,8 @@ NewPing sonar[SONAR_NUM] = {   // Sensor object array.
 int getPing(){
   int average = 0;
   for (uint8_t i = 0; i < SONAR_NUM; i++) { // Loop through each sensor and display results.
-    delay(50); // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
+    delay(150
+    ); // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
     Serial.print(i);
     Serial.print("=");
     Serial.print(sonar[i].ping_cm());
@@ -129,12 +134,11 @@ void updateGPS(){
 
 void updateCompass(){
 compass.read();
-*compassHeading = compass.heading();
-*compassHeading+=5.47;
+
 
 Serial.print("Compass Reading: ");
-Serial.println(*compassHeading
-);
+
+
 
  /* 
   sensors_event_t event;
@@ -174,8 +178,8 @@ void roverSetup()
   lead to an assumed magnetometer bias of 0. Use the Calibrate example
   program to determine appropriate values for your particular unit.
   */
-  compass.m_min = (LSM303::vector<int16_t>){-380, -557, -442};
-  compass.m_max = (LSM303::vector<int16_t>){+648, +518, +498};
+  compass.m_min = (LSM303::vector<int16_t>){-610, -440, -539};
+  compass.m_max = (LSM303::vector<int16_t>){+509, +526, +434};
     
    updateGPS();
    updateCompass();
@@ -185,18 +189,28 @@ void roverSetup()
 
 void motorForward()
 {
-  motorFrontRight.setSpeed(-400);
-  motorFrontLeft.setSpeed(-400);
-  motorBackRight.setSpeed(-400);
-  motorBackLeft.setSpeed(-400);
+  motorFrontRight.setSpeed(150
+  );
+  motorFrontLeft.setSpeed(150
+  );
+  motorBackRight.setSpeed(150
+
+  );
+  motorBackLeft.setSpeed(150
+
+  );
 }
 
 void motorBackward()
 {
-  motorFrontRight.setSpeed(150);
-  motorBackRight.setSpeed(150);
-  motorFrontLeft.setSpeed(150);
-  motorBackLeft.setSpeed(150);
+  motorFrontRight.setSpeed(-150
+  );
+  motorBackRight.setSpeed(-150
+  );
+  motorFrontLeft.setSpeed(-150
+  );
+  motorBackLeft.setSpeed(-150
+  );
 }
 
 void motorStop()
@@ -209,32 +223,66 @@ void motorStop()
 
 void motorleft()
 {
-  motorFrontRight.setSpeed(-400);
-  motorBackRight.setSpeed(-400);
-  motorFrontLeft.setSpeed(400);
-  motorBackLeft.setSpeed(400);
+  motorFrontRight.setSpeed(-150
+
+  );
+  motorBackRight.setSpeed(-150
+
+  );
+  motorFrontLeft.setSpeed(150
+
+  );
+  motorBackLeft.setSpeed(150
+
+  );
 }
 
 void motorright()
 {
-  motorFrontRight.setSpeed(400);
-  motorBackRight.setSpeed(400);
-  motorFrontLeft.setSpeed(-400);
-  motorBackLeft.setSpeed(-400);
+  motorFrontRight.setSpeed(150
+
+  );
+  motorBackRight.setSpeed(150
+
+  );
+  motorFrontLeft.setSpeed(-150
+
+  );
+  motorBackLeft.setSpeed(-150
+
+  );
 }
 
 void steerRight()
 {
-  motorFrontRight.setSpeed(200);
-  motorBackRight.setSpeed(200);
-  motorFrontLeft.setSpeed(-400);
-  motorBackLeft.setSpeed(-400);
+  motorFrontRight.setSpeed(150
+  );
+  motorBackRight.setSpeed(150
+  );
+  motorFrontLeft.setSpeed(-150
+
+  );
+  motorBackLeft.setSpeed(-150
+
+  );
+}
+static void smartDelay(unsigned long ms)
+{
+  unsigned long start = millis();
+  do 
+  {
+    while (Serial1.available())
+      gps.encode(Serial1.read());
+  } while (millis() - start < ms);
 }
 
 void setup()
 {
-  Serial.begin(115200);
-  Serial1.begin(9600); //Serial1 for GPS
+  Serial.begin(250000);
+  Serial1.begin(9600); //Serial1 for GPS 
+  Serial2.begin(57600);
+  Dabble.begin(9600);      //Enter baudrate of your bluetooth.Connect bluetooth on Bluetooth port present on evive.
+
   //set pins for ultrasonics
   motorFrontRight.begin(motorFrontRightPWM, motorFrontRightEnableA, motorFrontRightEnableB); // Motor 1 object connected through specified pins
   motorFrontLeft.begin(motorFrontLeftPWM, motorFrontLeftEnableA, motorFrontLeftEnableB);
@@ -242,28 +290,243 @@ void setup()
   motorBackLeft.begin(motorBackLeftPWM, motorBackLeftEnableA, motorBackLeftEnableB);
   roverSetup();
 
-  
   // Serial for AT commands (can be higher with HW Serial, or even lower in SW Serial)
-  Serial2.begin(57600);
-
-  // set APN (you can remove user and password from call if your apn does not require them)
+  // set APN
   thing.setAPN(APN_NAME, APN_USER, APN_PSWD);
-
-  // set PIN (optional)
-  // thing.setPIN(CARD_PIN);
 
   // resource input example (i.e, controlling a digitalPin);
   pinMode(LED_BUILTIN, OUTPUT);
   thing["led"] << digitalPin(LED_BUILTIN);
-
-  // resource output example (i.e. reading a sensor value)
   thing["millis"] >> outputValue(millis());
+  thing["compass"] >> outputValue(compassHeading);
+  thing["compassGPS"] >> outputValue(currentCompass);
+  thing["courseVariation"] >> outputValue(coursetoKey);
+  thing["cardinal"] >> outputValue(cardinal);
+
+  thing["location"] >> [](pson & out) { 
+ 
+    out["lat"] = currentLatitude;
+    out["lon"] = currentLongitude;
+  };
+  // more
+  Wire.begin();
+  compass.init();
+  compass.enableDefault();
+  
+  /*
+  Calibration values; the default values of +/-32767 for each axis
+  lead to an assumed magnetometer bias of 0. Use the Calibrate example
+  program to determine appropriate values for your particular unit.
+  */
+  compass.m_min = (LSM303::vector<int16_t>){-610, -440, -539};
+  compass.m_max = (LSM303::vector<int16_t>){+509, +526, +434};  Wire.begin();
+  compass.init();
+  compass.enableDefault();
+  
+  /*
+  Calibration values; the default values of +/-32767 for each axis
+  lead to an assumed magnetometer bias of 0. Use the Calibrate example
+  program to determine appropriate values for your particular unit.
+  */
+  compass.m_min = (LSM303::vector<int16_t>){-610, -440, -539};
+  compass.m_max = (LSM303::vector<int16_t>){+509, +526, +434};
 }
 
 void loop()
-{
-updateCompass();
-updateGPS();
+{  
+  thing.handle();
+  
+    smartDelay(10);
+    currentLongitude = gps.location.lng();
+    currentLatitude = gps.location.lat();
+    
+  
+  //motorBackward();
+  //motorStop();
+  updateGPS();
+  compass.read();
+  compassHeading = compass.heading();
 
-distanceToDestination = TinyGPSPlus::distanceBetween(gps.location.lat(),gps.location.lng())
-}
+  currentCompass=gps.course.deg();
+  Serial.println(gps.course.deg()); // Course in degrees (double)
+
+  
+   coursetoKey =
+    TinyGPSPlus::courseTo(
+      gps.location.lat(),
+      gps.location.lng(),
+      destinationLatitude, 
+      destinationLongitude);
+  //Serial.println(compassHeading);
+ cardinal = TinyGPSPlus::cardinal(coursetoKey);
+    Dabble.processInput();             //this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
+  Serial.print("KeyPressed: ");
+  if (GamePad.isUpPressed())
+  {
+    motorForward();
+    Serial.print("UP");
+  }
+
+  if (GamePad.isDownPressed())
+  {
+    motorBackward();
+    Serial.print("DOWN");
+  }
+
+  if (GamePad.isLeftPressed())
+  {
+    motorleft();
+    Serial.print("Left");
+  }
+
+  if (GamePad.isRightPressed())
+  {
+    motorright();
+    Serial.print("Right");
+  }
+
+  if (GamePad.isSquarePressed())
+  {
+    motorStop();
+    Serial.print("Square");
+  }
+
+  if (GamePad.isCirclePressed())
+  {
+    Serial.print("Circle");
+  }
+
+  if (GamePad.isCrossPressed())
+  {
+    Serial.print("Cross");
+  }
+
+  if (GamePad.isTrianglePressed())
+  {
+    Serial.print("Triangle");
+  }
+
+  if (GamePad.isStartPressed())
+  {
+    Serial.print("Start");
+  }
+
+  if (GamePad.isSelectPressed())
+  {
+    Serial.print("Select");
+  }
+  Serial.print('\t');
+/*motorBackward();
+Serial.println(gps.location.lat(),7);
+compass.read();
+*compassHeading = compass.heading();
+*compassHeading+=5.47;
+currentLatitude= gps.location.lat();
+currentLongitude=gps.location.lng();
+Serial.print("Compass Reading: ");
+Serial.println(*compassHeading);
+//distanceToDestination = TinyGPSPlus::distanceBetween(gps.location.lat(),gps.location.lng())
+   gps.encode(ss.read());
+    motorStop();
+
+    if (millis() - lastUpdateTime >= 3000)
+    {
+      lastUpdateTime = millis();
+      Serial.println(String(lastUpdateTime));
+
+      unsigned long distanceToDestination = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), TARGET_LATITUDE, TARGET_LONGITUE);
+      double courseToDestination = TinyGPSPlus::courseTo(gps.location.lat(), gps.location.lng(), TARGET_LATITUDE, TARGET_LONGITUE);
+      const char *cardinalDestination = TinyGPSPlus::cardinal(courseToDestination);
+      int heading = (int)(360 + courseToDestination - gps.course.deg()) % 360;
+
+      /*sensors_event_t event;
+  mag.getEvent(&event);
+  float Pi = 3.14159;
+  // Calculate the angle of the vector y,x
+  float heading = ((atan2(event.magnetic.y, event.magnetic.x) * 180) / Pi)+5.88;
+  // Normalize to 0-360
+  if (heading < 0) {
+    heading = 360 + heading;
+  }
+  Serial.print("Compass Heading: ");
+  Serial.println(heading);
+  delay(500);
+*/
+      Serial.print("Lat: ");
+      Serial.println(gps.location.lat());
+      Serial.println("Long: ");
+      Serial.println(gps.location.lng());
+      Serial.print("Course to destination: ");
+      Serial.println(courseToDestination);
+      Serial.println("Current Course: ");
+      Serial.print(gps.course.deg());
+      Serial.print("Cardinal Direction: ");
+      Serial.println(cardinalDestination);
+      Serial.print("Adjustment needed: ");
+      Serial.println(heading);
+      Serial.print("Speed in kmph: ");
+      Serial.println(gps.speed.kmph());
+
+      if (distanceToDestination <= 1)
+      {
+        Serial.println("Destination Reached");
+        exit(1);                                                                                                                                                                                  
+      }
+
+      Serial.print("DISTANCE: ");
+      Serial.print(distanceToDestination);
+      Serial.println(" meters to go.");
+      Serial.print("INSTRUCTION: ");
+
+      if (gps.speed.kmph() < .1)
+      {
+        Serial.print("Head ");
+        Serial.print(cardinalDestination);
+        Serial.println(".");
+        return;
+      }
+
+      if (heading >= 345 || heading < 15)
+      {
+        motorStop();
+        delay(1000);
+        moveForward();
+      }
+      else if (heading >= 315 && heading < 345)
+      {
+        Serial.println("Veer slightly to the left.");
+        motorStop();
+        delay(1000);
+        moveLeftLow();
+      }
+      else if (heading >= 15 && heading < 45)
+      {
+        Serial.println("Veer slightly to the right.");
+        motorStop();
+        delay(1000);
+        moveRightLow();
+      }
+      else if (heading >= 255 && heading < 315)
+      {
+        Serial.println("Turn to the left.");
+        motorStop();
+        delay(1000);
+        moveLeft();
+      }
+      else if (heading >= 45 && heading < 105)
+      {
+        Serial.println("Turn to the right.");
+        motorStop();
+        delay(1000);
+        moveRight();
+      }
+      else
+      {
+        Serial.println("Turn completely around.");
+        motorStop();
+        delay(1000);
+        moveRight();
+        delay(3000);
+        motorStop();
+      }
+*/}
